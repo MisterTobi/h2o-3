@@ -4,9 +4,13 @@ import hex.ModelBuilder;
 import hex.ModelCategory;
 import hex.glm.GLMModel.GLMParameters.Family;
 import hex.glm.GLMModel.GLMParameters.Link;
+import jsr166y.RecursiveAction;
 import water.Key;
 import water.exceptions.H2OModelBuilderIllegalArgumentException;
 import water.fvec.Frame;
+import water.fvec.Vec;
+
+import java.util.Arrays;
 
 
 public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel.GAMModelOutput> {
@@ -19,9 +23,6 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
 
   @Override
   public BuilderVisibility builderVisibility() { return BuilderVisibility.Experimental; }
-
-  // Called from an http request
-
   
   @Override public boolean havePojo() { return false; }
   @Override public boolean haveMojo() { return false; }
@@ -42,6 +43,13 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
         error("_family", "Only gaussian family is supported for now.");
       if (!_parms._link.equals(Link.identity) && !_parms._link.equals(Link.family_default))
         error("_link", "Only identity or family_default link is supported for now.");
+      if (_parms._gam_X==null)
+        error("_gam_X", "must specify columns indices to apply GAM to.  If you don't have any, use GLM.");
+      if (_parms._k==null) {  // user did not specify any knots, we will use default 10, evenly spread over whole range
+        int numKnots = _train.numRows() < 10?(int)_train.numRows():10;
+        _parms._k = new int[_parms._gam_X.length];  // different columns may have different 
+        Arrays.fill(_parms._k, numKnots);
+      }
     }
   }
 
@@ -83,17 +91,25 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
      * @return
      */
     Frame adaptTrain() {
-      Frame orig = _parms.train();  // contain all needed columns
-      Frame adapt = new Frame(_parms.train());  // only contains predictors and response column
-      
-      return adapt;
+      Frame orig = _parms.train();  // contain all columns, _train contains only predictors and responses
+      int numGamFrame = _parms._gam_X.length;
+      Key<Frame>[] gamFramesKey = new Key[numGamFrame];  // store the Frame keys of generated GAM column
+      RecursiveAction[] generateGamCoumn = new RecursiveAction[numGamFrame];
+      for (int index=0; index < numGamFrame; index++) {
+        final Vec predictVec = orig.vec(_parms._gam_X[index]);  // extract the vector to work on
+        final int numKnots = _parms._k[index];  // grab number of knots to generate
+        final 
+        @Override protected void compute() {
+          
+        }
+      }
+      return _train;
     }
     
     @Override
     public void computeImpl() {
-      init(true); //this can change the seed if it was set to -1
-      // Something goes wrong
-      if (error_count() > 0)
+      init(true);     //this can change the seed if it was set to -1
+      if (error_count() > 0)   // if something goes wrong, let's throw a fit
         throw H2OModelBuilderIllegalArgumentException.makeFromBuilder(GAM.this);
       
       _job.update(0, "Initializing model training");

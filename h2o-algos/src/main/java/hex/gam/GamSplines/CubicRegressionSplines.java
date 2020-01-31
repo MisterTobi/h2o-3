@@ -21,6 +21,7 @@ public class CubicRegressionSplines {
     int numHj = knots.length-1;
     double[] hj = new double[knots.length];
     
+    return hj;
   }
   public static double gen_a_m_j(double xjp1, double x, double hj) {
     return (xjp1-x)/hj;

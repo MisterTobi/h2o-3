@@ -30,7 +30,7 @@ public class GamTestPiping extends TestUtil {
       parms._bs = new BSType[]{BSType.cr};
       parms._k = new int[]{6};
       parms._response_column = train.name(2);
-      parms._ignored_columns = new String[]{train.name(0)};
+      parms._ignored_columns = new String[]{train.name(0)}; // row of ids
       parms._gam_X = new String[]{train.name(1)};
       parms._train = train._key;
       parms._family = GLMModel.GLMParameters.Family.gaussian;
