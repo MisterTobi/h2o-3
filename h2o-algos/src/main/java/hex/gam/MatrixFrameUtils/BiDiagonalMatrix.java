@@ -1,4 +1,4 @@
-package hex.gam.MatrixUtils;
+package hex.gam.MatrixFrameUtils;
 
 /***
  * This class denotes a bidiagonal matrix with only non-zero elements on the diagonal, one diagonal above the

@@ -1,7 +1,7 @@
 package hex.gam.GamSplines;
 
-import hex.gam.MatrixUtils.BiDiagonalMatrix;
-import hex.gam.MatrixUtils.TriDiagonalMatrix;
+import hex.gam.MatrixFrameUtils.BiDiagonalMatrix;
+import hex.gam.MatrixFrameUtils.TriDiagonalMatrix;
 
 public class CubicRegressionSplines {
   double[] _knots;  // store knot values for the spline class

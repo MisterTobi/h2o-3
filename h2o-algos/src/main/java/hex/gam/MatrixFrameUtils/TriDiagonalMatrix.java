@@ -1,4 +1,4 @@
-package hex.gam.MatrixUtils;
+package hex.gam.MatrixFrameUtils;
 
 /***
  * This class denotes a (size-2) by size matrix with only three diagonals that are nonzero.
