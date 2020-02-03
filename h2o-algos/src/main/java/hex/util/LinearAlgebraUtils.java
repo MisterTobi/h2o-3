@@ -9,17 +9,13 @@ import hex.ToEigenVec;
 import hex.gram.Gram;
 import jsr166y.ForkJoinTask;
 import jsr166y.RecursiveAction;
-import water.DKV;
-import water.Job;
-import water.Key;
-import water.MRTask;
+import water.*;
 import water.fvec.Chunk;
 import water.fvec.Frame;
 import water.fvec.NewChunk;
 import water.fvec.Vec;
 import water.util.ArrayUtils;
 import water.util.Log;
-
 import java.util.Arrays;
 
 import static java.util.Arrays.sort;
@@ -97,6 +93,32 @@ public class LinearAlgebraUtils {
     }
     ForkJoinTask.invokeAll(ras);
     return inverted;
+  }
+
+  public static double[][] generateTriDiagMatrix(final double[] hj) {
+    final int matrixSize = hj.length-1;  // cholR is actuall transpose(R) from QR
+//    double[][] cholL = ArrayUtils.transpose(cholR); // this is R from QR
+    final double[][] lowDiag = new double[matrixSize][];
+    RecursiveAction[] ras = new RecursiveAction[matrixSize];
+    for (int index=0; index<matrixSize; index++) {
+      final int rowSize = index+1;
+      final double[] oneColumn = new double[index+1]; // lower diagonal matrix
+      final int i = index;
+      final double hjIndex = hj[index];
+      final double hjIndexP1 = hj[index+1];
+      final double oneO3 = 1.0/3.0;
+      final double oneO6 = 1.0/6.0;
+      ras[i] = new RecursiveAction() {
+        @Override protected void compute() {
+          lowDiag[i] = MemoryManager.malloc8d(rowSize);
+          lowDiag[i][rowSize] = (hjIndex+hjIndexP1)*oneO3;
+          if (rowSize > 0)
+            lowDiag[i][rowSize-1] = hjIndexP1*oneO6;
+        }
+      };
+    }
+    ForkJoinTask.invokeAll(ras);
+    return lowDiag;
   }
   
   public static double[][] matrixMultiply(double[][] A, double[][] B ) {

@@ -1,29 +1,39 @@
 package hex.gam.MatrixFrameUtils;
 
-/***
- * This class denotes a (size-2) by size matrix with only three diagonals that are nonzero.
- */
+import water.MemoryManager;
+
 public class TriDiagonalMatrix {
-  double[] _diag1;  // diagonal starting off element row=0, col=0
-  double[] _diag2;  // diagonal starting off element row=0, col=1
-  double[] _diag3;  // diagonal starting off element row=0, col=2
-  int _size;           // matrix column number
-  
+  double[] _first_diag;
+  double[] _second_diag;
+  double[] _third_diag;
+
+  public int _size;  // square matrix size
+
   public TriDiagonalMatrix(int size) {
-    assert size > 2;
+    assert size>2:"Size of BiDiagonalMatrix must exceed 1 but is "+size;
     _size = size;
-    int matRow = _size-2;
-    _diag1 = new double[matRow];
-    _diag2 = new double[matRow];
-    _diag3 = new double[matRow];
+    _first_diag = MemoryManager.malloc8d(size);
+    _second_diag = MemoryManager.malloc8d(size);
+    _third_diag = MemoryManager.malloc8d(size);
   }
-  
-  public TriDiagonalMatrix(double[] diag1, double[] diag2, double[] diag3) {
-    assert diag1.length>0;
-    assert (diag1.length==diag2.length) && (diag2.length==diag3.length);
-    _size = diag1.length+2;
-    _diag1 = diag1;
-    _diag2 = diag2;
-    _diag3 = diag3;
+
+  public TriDiagonalMatrix(double[] fdiag, double[] sdiag, double[] tdiag) {
+    assert (fdiag.length==sdiag.length) &&  (sdiag.length >2) && (sdiag.length==tdiag.length);
+    _first_diag = fdiag;
+    _second_diag = sdiag;
+    _third_diag = tdiag;
+    _size = tdiag.length;
+  }
+
+  public TriDiagonalMatrix(double[] hj) {
+    this(hj.length-1);  // hj size k-1
+    int diagSize = _size;
+    for (int index=0; index < diagSize; index++) {
+      double oneOhj = 1.0/hj[index];
+      double oneOhjP1 = 1/hj[index+1];
+      _first_diag[index] = oneOhj;
+      _second_diag[index] = -oneOhj-oneOhjP1;
+      _third_diag[index] = oneOhjP1;
+    }
   }
 }

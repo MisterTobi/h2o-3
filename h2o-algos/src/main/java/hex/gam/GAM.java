@@ -10,6 +10,7 @@ import water.exceptions.H2OModelBuilderIllegalArgumentException;
 import water.fvec.Frame;
 import water.fvec.Vec;
 import hex.gam.GAMModel.GAMParameters.BSType;
+import hex.gam.MatrixFrameUtils.GenerateGamMatrixOneColumn;
 
 import java.util.Arrays;
 
@@ -97,14 +98,14 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
       Key<Frame>[] gamFramesKey = new Key[numGamFrame];  // store the Frame keys of generated GAM column
       RecursiveAction[] generateGamColumn = new RecursiveAction[numGamFrame];
       for (int index=0; index < numGamFrame; index++) {
-        final Vec predictVec = orig.vec(_parms._gam_X[index]);  // extract the vector to work on
+        final Frame predictVec = new Frame(orig.vec(_parms._gam_X[index]));  // extract the vector to work on
         final int numKnots = _parms._k[index];  // grab number of knots to generate
         final BSType splineType = _parms._bs[index];
         final int tIndex = index;
         generateGamColumn[tIndex] = new RecursiveAction() {
           @Override
           protected void compute() {
-            Frame oneAugmentedColumn = 
+            Frame oneAugmentedColumn = new GenerateGamMatrixOneColumn(splineType, numKnots, null, predictVec).doAll(numKnots,Vec.T_NUM,predictVec).outputFrame(null, null, null);
           }
         };
       }

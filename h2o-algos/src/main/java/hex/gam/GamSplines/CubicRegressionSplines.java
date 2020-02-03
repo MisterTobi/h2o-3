@@ -1,28 +1,45 @@
 package hex.gam.GamSplines;
 
-import hex.gam.MatrixFrameUtils.BiDiagonalMatrix;
 import hex.gam.MatrixFrameUtils.TriDiagonalMatrix;
+import water.MemoryManager;
+import static hex.util.LinearAlgebraUtils.generateTriDiagMatrix;
 
 public class CubicRegressionSplines {
   double[] _knots;  // store knot values for the spline class
   double[] _hj;     // store difference between knots, length _knotNum-1
   int _knotNum; // number of knot values
-  BiDiagonalMatrix _matrixB;  // of dimension (_knotNum-2) by (_knotNum-2)
-  TriDiagonalMatrix _matrixD; // of dimension (_knotNum-2) by _knotNum
+  double[][] _bInvD; // contains the inverse of _matrixB * _matrixD
   
-  public CubicRegressionSplines(double[] knots) {
+  public CubicRegressionSplines(int knotNum, double[] knots, double vmax, double vmin) {
+    _knotNum = knotNum;
     _knots = knots;
-    _knotNum = knots.length;
+    if (knots==null) {
+      _knots = MemoryManager.malloc8d(_knotNum);
+      int lastKnotInd = _knotNum-1;
+      double incre = (vmax-vmin)/(lastKnotInd);
+      _knots[0] = vmin;
+      _knots[lastKnotInd] = vmax;
+      for (int index=1; index < lastKnotInd; index++) {
+        _knots[index] = _knots[index-1]+incre;
+      }
+    }
     _hj = setHj(knots);
+  }
+  
+  public void genreateBIndvD(double[] hj) {  // generate matrix bInvD
+    TriDiagonalMatrix matrixD = new TriDiagonalMatrix(hj); // of dimension (_knotNum-2) by _knotNum
+    double[][] xx = generateTriDiagMatrix(hj);  // lower diagonal matrix
     
   }
   
   public static double[] setHj(double[] knots) {
     int numHj = knots.length-1;
-    double[] hj = new double[knots.length];
-    
+    double[] hj = MemoryManager.malloc8d(numHj);
+    for (int index = 0; index < numHj; index++)
+      hj[index] = knots[index+1]-knots[index];  // expect it to be uniform in length though
     return hj;
   }
+  
   public static double gen_a_m_j(double xjp1, double x, double hj) {
     return (xjp1-x)/hj;
   }
